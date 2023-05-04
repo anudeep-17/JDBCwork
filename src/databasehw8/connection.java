@@ -3,6 +3,7 @@ package databasehw8;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -40,6 +41,11 @@ public class connection
 	public static DatabaseMetaData getmetadata(connection Conn) throws SQLException
 	{
 		return conn.getMetaData();
+	}
+	
+	public static ResultSet queryresult(connection Conn, String query) throws SQLException
+	{
+		return createStatement(Conn).executeQuery(query);
 	}
 	
 }
