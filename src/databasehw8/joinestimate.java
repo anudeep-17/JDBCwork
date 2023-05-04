@@ -12,33 +12,93 @@ public class joinestimate
 	public static int estimatejoin(connection setup, String table1, String table2) throws SQLException
 	{
 		int Size = 0;
+		ArrayList<String> is_nonkeycommon = is_a_nonkey_common(setup, table1, table2);
+		System.out.println(is_nonkeycommon);
 		
 		if(is_a_key_shared(setup, table1, table2))
-		  {
-			//case 2
-			  Size = sizeoftable(setup, foreigntablename);
-		  }
+			{
+				//case 2
+				Size = sizeoftable(setup, foreigntablename);
+			}
+		else if(is_nonkeycommon.size() != 0)
+			{
+				//case3
+				Size = calc_if_nonkey_common(setup, is_nonkeycommon, table1, table2);
+			}
 		else
-		{
-			//case 1
-			Size = sizeoftable(setup, table1) * sizeoftable(setup, table2);
-		}
+			{
+				//case 1
+				Size = sizeoftable(setup, table1) * sizeoftable(setup, table2);
+			}
 		
 		return Size;
 	}
+
 	
-	
-	public static int sizeoftable(connection setup,String table) throws SQLException
+	public static ArrayList is_a_nonkey_common(connection setup,String table1, String table2) throws SQLException
 	{
-		ResultSet size_set = connection.queryresult(setup, "select count(*) as count from "+ table);
+		ResultSet set_table1_1 = connection.getmetadata(setup).getColumns(null, null, table1, null);
+		ResultSet set_table2_1 = connection.getmetadata(setup).getColumns(null, null, table2, null);
 		
-		while(size_set.next())
+		ResultSet primarykey1 = connection.getmetadata(setup).getPrimaryKeys(null, null,table1);
+		ResultSet primarykey2 = connection.getmetadata(setup).getPrimaryKeys(null, null,table2);
+		
+		ArrayList<String> primarykey_table1 = new ArrayList<String>();
+		ArrayList<String> primarykey_table2 = new ArrayList<String>();
+		
+		ArrayList<String> set1 = new ArrayList<String>();
+		ArrayList<String> set2 = new ArrayList<String>();
+		
+		while(primarykey1.next())
 		{
-			return size_set.getInt("count");
+			primarykey_table1.add(primarykey1.getString("COLUMN_NAME"));
 		}
-		return 0;
+		
+		while(primarykey2.next())
+		{
+			primarykey_table2.add(primarykey2.getString("COLUMN_NAME"));
+		}
+		
+		while(set_table1_1.next())
+		{
+			if(!primarykey_table1.contains(set_table1_1.getString("COLUMN_NAME")))
+			{
+				set1.add(set_table1_1.getString("COLUMN_NAME"));
+			}
+		}
+		
+		while(set_table2_1.next())
+		{
+			if(!primarykey_table2.contains(set_table2_1.getString("COLUMN_NAME")))
+			{
+				set2.add(set_table2_1.getString("COLUMN_NAME"));
+			}
+		}
+		
+		set1.retainAll(set2);
+	
+		set_table1_1.close();
+		set_table2_1.close();
+		primarykey1.close();
+		primarykey2.close();
+		
+		return set1;
+		
 	}
 	
+	public static int calc_if_nonkey_common(connection setup, ArrayList<String> common, String table1, String table2) throws SQLException
+	{
+		int min = Integer.MAX_VALUE;
+		
+		for (int i = 0; i < common.size(); i++)
+		{
+			int temp1 = (sizeoftable(setup, table1) * sizeoftable(setup, table2))/distinctsize(setup, table1, common.get(i));
+			int temp2 = (sizeoftable(setup, table1) * sizeoftable(setup, table2))/distinctsize(setup, table2, common.get(i));
+			min = Math.min(min, Math.min(temp1, temp2));
+		}
+		
+		return min;
+	}
 	
 	public static boolean is_a_key_shared(connection setup,String table1, String table2) throws SQLException
 	{
@@ -52,7 +112,7 @@ public class joinestimate
 		ResultSet set_table2_2 = connection.getmetadata(setup).getImportedKeys(null, null,table2);
 		ResultSet set_table2_3 = connection.getmetadata(setup).getExportedKeys(null, null,table2);
 		
-		ArrayList<String> primarykey_table1 = new ArrayList<String>();;
+		ArrayList<String> primarykey_table1 = new ArrayList<String>();
 		
 		ArrayList<String> Importedkey_table1 = new ArrayList<String>();
 		ArrayList<String>  Importedkeytable_table1 = new ArrayList<String>();
@@ -105,9 +165,16 @@ public class joinestimate
 			Exportedkey_table2.add(set_table2_3.getString("FKCOLUMN_NAME"));
 		}
 		
-//		System.out.println( primarykey_table1 +" " + Importedkeytable_table1 +" "+ Exportedkeytable_table1);
-//		System.out.println( primarykey_table2 +" " + Importedkeytable_table2 +" "+ Exportedkeytable_table2);
-	
+//		System.out.println("table1 data: "+  primarykey_table1 +" " + Importedkeytable_table1 +" "+ Exportedkeytable_table1);
+//		System.out.println("table2 data: "+ primarykey_table2 +" " + Importedkeytable_table2 +" "+ Exportedkeytable_table2);
+//	
+		set_table1_1.close();
+		set_table1_2.close();
+		set_table1_3.close();
+		
+		set_table2_1.close();
+		set_table2_2.close();
+		set_table2_3.close();
 		
 		boolean case1 = Importedkey_table2.containsAll(primarykey_table1) && Exportedkeytable_table1.contains(table2) && Importedkeytable_table2.contains(table1); //table2 has table1 primary key
 		
@@ -119,6 +186,42 @@ public class joinestimate
 			if(case2) {foreigntablename = table1;}
 			return true;
 		}
+		
 		return false;
 	}
+	
+	//helper
+	
+	public static int sizeoftable(connection setup,String table) throws SQLException
+	{
+		ResultSet size_set = connection.queryresult(setup, "select count(*) as count from "+ table);
+		
+		while(size_set.next())
+		{
+			return size_set.getInt("count");
+		}
+		
+		size_set.close();
+		
+		return 0;
+	}
+	
+	
+	public static int distinctsize(connection setup,String table, String Column) throws SQLException
+	{
+		ResultSet size_set = connection.queryresult(setup, "select count(distinct( "+ Column +" )) as count from "+ table);
+		
+		while(size_set.next())
+		{
+			return size_set.getInt("count");
+		}
+		
+		size_set.close();
+		
+		return 0;
+	}
+	
+	
+	
+	
 }
