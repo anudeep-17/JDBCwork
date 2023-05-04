@@ -1,17 +1,21 @@
 package databasehw8;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class connection 
 {
+	private static Connection conn = null;
+	
 	public connection()
 	{
 		
 	}
 	
-	public connection(Connection conn,String database_connection_string, String database_user_name, String database_user_password )
+	public connection(String database_connection_string, String database_user_name, String database_user_password )
 	  {
 		  try {
 
@@ -27,4 +31,15 @@ public class connection
 
 	        }
 	  }
+	
+	public static Statement createStatement(connection Conn) throws SQLException
+	{
+		return conn.createStatement(); 
+	}
+	
+	public static DatabaseMetaData getmetadata(connection Conn) throws SQLException
+	{
+		return conn.getMetaData();
+	}
+	
 }

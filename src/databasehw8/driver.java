@@ -1,16 +1,10 @@
 package databasehw8;
 
-import java.sql.Connection;
-
-import java.sql.DriverManager;
-
-import java.sql.SQLException;
+import java.sql.*;
 
 
 public class driver 
 {
-
-	private static Connection conn = null;
 	
 	private static String database_connection_string = "jdbc:postgresql://localhost:5432/uni_sk79";
 
@@ -18,9 +12,12 @@ public class driver
 
     private static String database_user_password = "SK796958";
     
-	public static void main(String[] args)
+	public static void main(String[] args) throws SQLException
 	{
-		connection setup = new connection(conn, database_connection_string, database_user_name, database_user_password);
-		
+		connection setup = new connection( database_connection_string, database_user_name, database_user_password);
+		joinestimate.estimatejoin(setup, "student", "instructor");
 	}
+	
+	
+	
 }
