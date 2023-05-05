@@ -29,7 +29,7 @@ public class Test_Suite
 	{
 		
 		assertEquals(2000, joinestimate.estimatejoin(setup, student, advisor));	
-		assertEquals(63, joinestimate.estimatejoin(setup, student, inst));
+		assertEquals(50, joinestimate.estimatejoin(setup, student, inst));
 		assertEquals(2000, joinestimate.estimatejoin(setup, student, dept));
 		assertEquals(20000, joinestimate.estimatejoin(setup, student, course));
 		assertEquals(200000, joinestimate.estimatejoin(setup, student, prereq));
@@ -59,7 +59,7 @@ public class Test_Suite
 	public void estimationtest_instructor() throws SQLException
 	{
 		String check = inst;
-		assertEquals(63, joinestimate.estimatejoin(setup, check, student));
+		assertEquals(50, joinestimate.estimatejoin(setup, check, student));
 		assertEquals(2000, joinestimate.estimatejoin(setup, check, advisor));
 		assertEquals(50, joinestimate.estimatejoin(setup, check, dept));
 		assertEquals(500, joinestimate.estimatejoin(setup, check, course));

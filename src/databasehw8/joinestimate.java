@@ -20,7 +20,7 @@ public class joinestimate
 				//case 2
 				Size = sizeoftable(setup, foreigntablename);
 			}
-		else if(is_nonkeycommon.size() != 0)
+		else if(is_nonkeycommon != null)
 			{
 				//case3
 				Size = calc_if_nonkey_common(setup, is_nonkeycommon, table1, table2);
@@ -61,27 +61,25 @@ public class joinestimate
 		
 		while(set_table1_1.next())
 		{
-			if(!primarykey_table1.contains(set_table1_1.getString("COLUMN_NAME")))
-			{
-				set1.add(set_table1_1.getString("COLUMN_NAME"));
-			}
+			set1.add(set_table1_1.getString("COLUMN_NAME"));
 		}
 		
 		while(set_table2_1.next())
 		{
-			if(!primarykey_table2.contains(set_table2_1.getString("COLUMN_NAME")))
-			{
 				set2.add(set_table2_1.getString("COLUMN_NAME"));
-			}
 		}
 		
-		set1.retainAll(set2);
-	
 		set_table1_1.close();
 		set_table2_1.close();
 		primarykey1.close();
 		primarykey2.close();
 		
+		set1.retainAll(set2);
+		
+		if(primarykey_table1.containsAll(set1) || primarykey_table2.containsAll(set1))
+		{
+			return null;
+		}
 		return set1;
 		
 	}
@@ -89,14 +87,23 @@ public class joinestimate
 	public static int calc_if_nonkey_common(connection setup, ArrayList<String> common, String table1, String table2) throws SQLException
 	{
 		int min = Integer.MAX_VALUE;
+		String common_column_names = " ";
 		
 		for (int i = 0; i < common.size(); i++)
 		{
-			int temp1 = (sizeoftable(setup, table1) * sizeoftable(setup, table2))/distinctsize(setup, table1, common.get(i));
-			int temp2 = (sizeoftable(setup, table1) * sizeoftable(setup, table2))/distinctsize(setup, table2, common.get(i));
-			min = Math.min(min, Math.min(temp1, temp2));
+			if(common_column_names.equals(" "))
+			{
+				common_column_names += common.get(i); 
+			}
+			else
+			{
+				common_column_names += ", "+ common.get(i); 
+			}
 		}
 		
+		int temp1 = (sizeoftable(setup, table1) * sizeoftable(setup, table2)) / distinctsize(setup, table1, common_column_names);
+		int temp2 = (sizeoftable(setup, table1) * sizeoftable(setup, table2)) / distinctsize(setup, table2, common_column_names);
+		min = Math.min(min, Math.min(temp1, temp2));
 		return min;
 	}
 	
