@@ -48,4 +48,14 @@ public class connection
 		return createStatement(Conn).executeQuery(query);
 	}
 	
+	public static int countqueryresult_returner(connection Conn, String query) throws SQLException
+	{
+		ResultSet set = createStatement(Conn).executeQuery(query);
+		while(set.next())
+		{
+			return set.getInt("count");
+		}
+		return 0;
+	}
+	
 }

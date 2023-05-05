@@ -13,7 +13,7 @@ public class joinestimate
 	{
 		int Size = 0;
 		ArrayList<String> is_nonkeycommon = is_a_nonkey_common(setup, table1, table2);
-		System.out.println(is_nonkeycommon);
+//		System.out.println(is_nonkeycommon);
 		
 		if(is_a_key_shared(setup, table1, table2))
 			{

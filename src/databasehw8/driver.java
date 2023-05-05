@@ -30,6 +30,12 @@ public class driver
 		
 		connection setup = new connection(database_connection_string, database_user_name, database_user_password);
 		
+		if(table1 == null || table2 == null)
+		{
+			System.out.println("one of the table name is wrong");
+			return ;
+		}
+		
 		int estimation = joinestimate.estimatejoin(setup, table1, table2);
 		int actualsize = actualjoin.actualJoinsize(setup, table1, table2);
 		int difference = estimation - actualsize;
@@ -38,7 +44,5 @@ public class driver
 		System.out.println("actual join size: " + actualsize);
 		System.out.println("difference of sizes: " + difference);
 	}
-	
-	
 	
 }
